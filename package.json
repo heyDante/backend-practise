@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "0.0.1",
-  "description": "",
+  "description": "backend for notes app",
   "main": "index.js",
   "scripts": {
     "build:ui": "rm -rf build && cd ../fullstack-practise && npm run build --prod && cp -r build ../backend",
