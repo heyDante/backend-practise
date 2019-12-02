@@ -4,7 +4,11 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
 
-app.use(cors())
+// For serving static content
+app.use(express.static('build'))
+
+// to prevent CORS error
+app.use(cors());
 
 // morgan
 morgan.token('data', (req, res) => {
