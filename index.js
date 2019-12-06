@@ -1,24 +1,28 @@
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
+const Note = require('./models/note');
 
 // For serving static content
 app.use(express.static('build'))
 
+// We have to use this else we woudn'te be able to recieve the object send by user.
+app.use(bodyParser.json());
+
 // to prevent CORS error
 app.use(cors());
 
-// morgan
+// MIDDLE-WARE 'morgan' used on 'post' method
 morgan.token('data', (req, res) => {
   console.log('Morgan', req.body);
-  return JSON.stringify(req.body);
+  return JSON.stringify(req.body); // will only be displayes as JSON
 });
 
-
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :data'));
-
 
 let notes = [ //let because we are modifying later with DELETE and PUT
   {
@@ -41,6 +45,7 @@ let notes = [ //let because we are modifying later with DELETE and PUT
   }
 ];
 
+
 // -- GET -- 
 
 app.get('/', (req, res) => {
@@ -48,45 +53,39 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/notes', (req, res) => {
-  res.json(notes)
-})
+  // Using mongoose model 'Note' to find notes
+  Note.find({})
+    .then( (notes) => {
+      res.json(notes.map( (note) => note.toJSON()));
+    });
+});
 
-app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id); // what we got was string
-  const note = notes.find(note => note.id === id) // if no note is found, we get undefined
-
-  if (note) {
-    response.json(note); 
-  } else {
-    response.status(404).end()
-  }
+app.get('/api/notes/:id', (request, response, next) => {
+  Note.findById(request.params.id)
+    .then( (note) => {
+      if (note) {
+        response.json(note.toJSON());
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch( (error) => next(error));
 })
 
 //  -- DELETE --
-app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id);
-  notes = notes.filter(note => note.id !== id)
-  response.status(204).end();
+app.delete('/api/notes/:id', (request, response, next) => {
+  Note.findByIdAndDelete(request.params.id)
+    .then( (result) => {
+      response.status(204).end();
+    })
+    .catch( (error) => {
+      next(error);
+    })
 })
 
-//  -- POST --
 
-// We have to use this else we woudn'te be able to recieve the object send by user.
-app.use(bodyParser.json());
 
-// // morgan
-// morgan.token('data', (req, res) => {
-//   console.log('Morgan', req.body);
-//   return JSON.stringify(req.body);
-// });
-
-const generateId = () => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map( (n => n.id) )) //notes.map returns an array with all the ids, then we extract the values using the spread operator.
-    : 0;
-
-  return maxId + 1;
-}
+// -- POST --
 
 app.post('/api/notes', (request, response) => {
   const body = request.body; // this would be undefined without the body-parser modyle.
@@ -97,33 +96,65 @@ app.post('/api/notes', (request, response) => {
     })
   }
 
-  const note = {
+  // note being created from the mongoose model 'Note'
+  const note = new Note({
     content: body.content,
     important: body.important || false,
     date: new Date(),
-    id: generateId(),
+    // id: generateId(), No need because mongoose creates it automatically!
+  });
+
+  // notes = notes.concat(note);
+  // response.json(note);
+
+  // saving note to mongodb
+  note.save()
+    .then( (savedNote) => {
+      response.json(savedNote.toJSON());
+    })
+});
+
+// -- PUT --
+app.put('/api/notes/:id', (request, response, next) => {
+  const body = request.body;
+
+  const note = {
+    content: body.content,
+    important: body.important
   }
 
-  notes = notes.concat(note);
-
-  response.json(note);
- 
+  Note.findByIdAndUpdate(request.params.id, note, { new: true})
+    .then( (updatedNote) => {
+      response.json(updatedNote.toJSON())
+    })
+    .catch( (error) => {
+      next(error);
+    })
 })
 
-// MIDDLE-WARE
+// MIDDLE-WARE for Unknown routes
 const unknownEndpoint = (req, res) => {
   res.status(404).send({
     error: 'unknown endpoint'
   });
 }
 
-app.use(unknownEndpoint)
+app.use(unknownEndpoint);
 
 
+// MIDDLE-WARE for error handling
+const errorHandler = (error, req, res, next) => {
+  console.log(error.message);
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return res.status(404).send({ error: 'malformatted id'});
+  }
+}
+
+app.use(errorHandler);
 
 // CREATING SERVER
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
