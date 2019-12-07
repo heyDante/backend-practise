@@ -87,14 +87,14 @@ app.delete('/api/notes/:id', (request, response, next) => {
 
 // -- POST --
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body; // this would be undefined without the body-parser modyle.
   
-  if (!body.content) {
-    return response.status(400).json({
-      error: 'content missing'
-    })
-  }
+  // if (!body.content) {
+  //   return response.status(400).json({
+  //     error: 'content missing'
+  //   })
+  // }
 
   // note being created from the mongoose model 'Note'
   const note = new Note({
@@ -110,8 +110,12 @@ app.post('/api/notes', (request, response) => {
   // saving note to mongodb
   note.save()
     .then( (savedNote) => {
-      response.json(savedNote.toJSON());
+      return savedNote.toJSON();
     })
+    .then( (savedAndFormattedNote) => {
+      response.json(savedAndFormattedNote);
+    })
+    .catch( (error) => next(error))
 });
 
 // -- PUT --
@@ -147,6 +151,8 @@ const errorHandler = (error, req, res, next) => {
   console.log(error.message);
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return res.status(404).send({ error: 'malformatted id'});
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message});
   }
 }
 
