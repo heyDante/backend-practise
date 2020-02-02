@@ -1,5 +1,9 @@
-const notesRouter = require('express').Router();
-const Note = require('../models/note');
+/* -- notesRouter variable gets all the Router functionalities of express -- */
+const notesRouter = require('express').Router(); 
+
+
+/* -- The actual Mongoose Model required for querying the database -- */
+const Note = require('../models/note'); 
 
 /* -- GET -- */
 notesRouter.get('/', (req, res) => {
@@ -30,7 +34,7 @@ notesRouter.post('/', (request, response, next) => {
   if (!body.content) {
     return response.status(400).json({
       error: 'content missing'
-    })
+    });
   }
 
   // note being created from the mongoose model 'Note'
@@ -40,7 +44,7 @@ notesRouter.post('/', (request, response, next) => {
     date: new Date(),
   });
 
-  // saving note to mongodb
+  // saving note to mongodb atlas
   note.save()
     .then( (savedNote) => {
       return savedNote.toJSON();
@@ -69,11 +73,11 @@ notesRouter.put('/:id', (request, response, next) => {
   const note = {
     content: body.content,
     important: body.important
-  }
+  };
 
   Note.findByIdAndUpdate(request.params.id, note, { new: true})
     .then( (updatedNote) => {
-      response.json(updatedNote.toJSON())
+      response.json(updatedNote.toJSON());
     })
     .catch( (error) => {
       next(error);

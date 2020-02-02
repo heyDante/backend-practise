@@ -4,11 +4,11 @@ const requestLogger = (request, response, next) => {
   console.log('Body: ', request.body);
   console.log('---');
   next();
-}
+};
 
 const unknownEndpoint = (request, response, next) => {
   response.status(404).send({ error: 'unknown endpoint' });
-}
+};
 
 const errorHandler = (error, request, response, next) => {
   console.log(error.message);
@@ -20,10 +20,10 @@ const errorHandler = (error, request, response, next) => {
   }
 
   next(error); // default to express's inbuit error handler
-}
+};
 
 module.exports = {
   requestLogger,
   unknownEndpoint,
   errorHandler
-}
+};
