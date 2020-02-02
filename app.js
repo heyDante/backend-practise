@@ -1,11 +1,14 @@
-const config = require('./utils/config');
+
 const express = require('express');
 const bodyParser = require('body-parser');
-const app = express();
+const app = express(); // intializing express library
 const cors = require('cors');
+const mongoose = require('mongoose');
+
+const config = require('./utils/config');
 const notesRouter = require('./controllers/notes');
 const middleware = require('./utils/middleware');
-const mongoose = require('mongoose');
+
 
 console.log('connecting to MongoDB Atlas..')
 
