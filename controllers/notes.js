@@ -6,12 +6,10 @@ const notesRouter = require('express').Router();
 const Note = require('../models/note'); 
 
 /* -- GET -- */
-notesRouter.get('/', (req, res) => {
+notesRouter.get('/', async (req, res) => {
   // Using mongoose model 'Note' to find notes
-  Note.find({})
-    .then( (notes) => {
-      res.json(notes.map( (note) => note.toJSON()));
-    });
+  const notes = await Note.find({});
+  res.json(notes.map((note) => note.toJSON()));
 });
 
 notesRouter.get('/:id', (request, response, next) => {
@@ -50,9 +48,9 @@ notesRouter.post('/', (request, response, next) => {
       return savedNote.toJSON();
     })
     .then( (savedAndFormattedNote) => {
-      response.json(savedAndFormattedNote);
+      response.status(201).json(savedAndFormattedNote);
     })
-    .catch( (error) => next(error))
+    .catch( (error) => next(error));
 });
 
 /* -- DELETE -- */
