@@ -26,7 +26,7 @@ app.use(express.static('build')); // For serving static content
 app.use(bodyParser.json()); // We have to use this else we woudn'te be able to recieve the object send by user.
 app.use(middleware.requestLogger);
 
-app.use('/api/notes', notesRouter); // Use 'notesRouter' to handle all routes for 'api/notes'
+app.use('/api/notes', notesRouter); // Use 'notesRouter' to handle all routes for 'api/notes'. Inside notesRouter is our model functionality
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
