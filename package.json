@@ -11,7 +11,7 @@
     "start": "NODE_ENV=production node index.js",
     "watch": "NODE_ENV=development nodemon index.js",
     "lint": "eslint .",
-    "test": "NODE_ENV=test jest --verbose --runInBand"
+    "test": "NODE_ENV=test jest tests/note_api.test.js --verbose --runInBand"
   },
   "author": "heyDante",
   "license": "MIT",

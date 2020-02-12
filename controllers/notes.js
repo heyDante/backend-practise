@@ -12,21 +12,22 @@ notesRouter.get('/', async (req, res) => {
   res.json(notes.map((note) => note.toJSON()));
 });
 
-notesRouter.get('/:id', (request, response, next) => {
-  Note.findById(request.params.id)
-    .then( (note) => {
-      if (note) {
-        response.json(note.toJSON());
-      } else {
-        response.status(404).end();
-      }
-    })
-    .catch( (error) => next(error));
+notesRouter.get('/:id', async (request, response, next) => {
+  try {
+    const note = await Note.findById(request.params.id);
+    if (note) {
+      response.json(note.toJSON());
+    } else {
+      response.status(404).end();
+    }
+  } catch (error) {
+    next(error);
+  }
 });
 
 
 /* -- POST -- */
-notesRouter.post('/', (request, response, next) => {
+notesRouter.post('/', async (request, response, next) => {
   const body = request.body; // this would be undefined without the body-parser modyle.
   
   if (!body.content) {
@@ -43,25 +44,22 @@ notesRouter.post('/', (request, response, next) => {
   });
 
   // saving note to mongodb atlas
-  note.save()
-    .then( (savedNote) => {
-      return savedNote.toJSON();
-    })
-    .then( (savedAndFormattedNote) => {
-      response.status(201).json(savedAndFormattedNote);
-    })
-    .catch( (error) => next(error));
+  try {
+    const savedNote = await note.save();
+    response.status(201).json(savedNote.toJSON());
+  } catch(exception) {
+    next(exception);
+  }
 });
 
 /* -- DELETE -- */
-notesRouter.delete('/:id', (request, response, next) => {
-  Note.findByIdAndDelete(request.params.id)
-    .then( (result) => {
-      response.status(204).end();
-    })
-    .catch( (error) => {
-      next(error);
-    });
+notesRouter.delete('/:id', async (request, response, next) => {
+  try {
+    await Note.findByIdAndDelete(request.params.id);
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
 });
 
 /* -- PUT -- */
