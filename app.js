@@ -5,9 +5,11 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const config = require('./utils/config');
-const notesRouter = require('./controllers/notes');
 const middleware = require('./utils/middleware');
 
+/* -- Routes -- */
+const notesRouter = require('./controllers/notesRouter');
+const usersRouter = require('./controllers/usersRouter');
 
 console.log('connecting to MongoDB Atlas..');
 
@@ -27,6 +29,7 @@ app.use(bodyParser.json()); // We have to use this else we woudn'te be able to r
 app.use(middleware.requestLogger);
 
 app.use('/api/notes', notesRouter); // Use 'notesRouter' to handle all routes for 'api/notes'. Inside notesRouter is our model functionality
+app.use('/api/users', usersRouter); // Use 'usersRouter' to handle all routes for 'api/users'. Inside usersRouter is our model functionality
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
