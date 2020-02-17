@@ -4,6 +4,7 @@ const notesRouter = require('express').Router();
 
 /* -- The actual Mongoose Model required for querying the database -- */
 const Note = require('../models/note'); 
+const User = require('../models/user');
 
 /* -- GET -- */
 notesRouter.get('/', async (req, res) => {
@@ -28,8 +29,11 @@ notesRouter.get('/:id', async (request, response, next) => {
 
 /* -- POST -- */
 notesRouter.post('/', async (request, response, next) => {
-  const body = request.body; // this would be undefined without the body-parser modyle.
-  
+  const body = request.body; // this would be undefined without the body-parser module.
+
+  const user = await User.findById(body.userId);
+  console.log(user);
+
   if (!body.content) {
     return response.status(400).json({
       error: 'content missing'
@@ -41,11 +45,16 @@ notesRouter.post('/', async (request, response, next) => {
     content: body.content,
     important: body.important || false,
     date: new Date(),
+    user: user._id
   });
 
   // saving note to mongodb atlas
   try {
     const savedNote = await note.save();
+    /* -- Adding note details in user -- */
+    user.notes = user.notes.concat(savedNote._id); // Adding the saved notes details to the user model, in the notes property.(array of objects)
+    await user.save();
+    /* -- Adding note details in user -- */
     response.status(201).json(savedNote.toJSON());
   } catch(exception) {
     next(exception);

@@ -14,7 +14,7 @@ const usersRouter = require('./controllers/usersRouter');
 console.log('connecting to MongoDB Atlas..');
 
 /* -- Actual connection to MongoDB Atlas. Shoulde be defined earlier than the mongoose models -- */
-mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
   .then( () => {
     console.log('connected to MongoDB');
   })

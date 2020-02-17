@@ -10,7 +10,7 @@ const api = supertest(app);
 describe('when there is initially one user at db', () => {
   beforeEach( async() => {
     await User.deleteMany({});
-    const user = new User({ username: 'root', password: 'sekret'});
+    const user = new User({ username: 'root', password: 'sekret' });
     await user.save();
   });
 
