@@ -9,7 +9,8 @@ const User = require('../models/user');
 /* -- GET -- */
 notesRouter.get('/', async (req, res) => {
   // Using mongoose model 'Note' to find notes
-  const notes = await Note.find({});
+  const notes = await Note.find({})
+    .populate('user', {username: 1, name: 1});
   res.json(notes.map((note) => note.toJSON()));
 });
 
