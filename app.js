@@ -9,6 +9,7 @@ const middleware = require('./utils/middleware');
 /* -- Routes -- */
 const notesRouter = require('./controllers/notesRouter');
 const usersRouter = require('./controllers/usersRouter');
+const loginRouter = require('./controllers/loginRouter');
 
 const app = express(); // intializing express library
 
@@ -31,6 +32,7 @@ app.use(middleware.requestLogger);
 
 app.use('/api/notes', notesRouter); // Use 'notesRouter' to handle all routes for 'api/notes'. Inside notesRouter is our model functionality
 app.use('/api/users', usersRouter); // Use 'usersRouter' to handle all routes for 'api/users'. Inside usersRouter is our model functionality
+app.use('/api/login', loginRouter); // Use 'loginRouter' to handle all routes for 'api/users.
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);

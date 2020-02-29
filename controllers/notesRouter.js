@@ -1,5 +1,6 @@
 /* -- notesRouter variable gets all the Router functionalities of express -- */
 const notesRouter = require('express').Router(); 
+const jwt = require('jsonwebtoken');
 
 
 /* -- The actual Mongoose Model required for querying the database -- */
@@ -29,35 +30,39 @@ notesRouter.get('/:id', async (request, response, next) => {
 
 
 /* -- POST -- */
+const getTokenFrom = (req) => {
+  const authorization = req.get('authorization');
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    return authorization.substring(7);
+  }
+  return null;
+};
+
 notesRouter.post('/', async (request, response, next) => {
   const body = request.body; // this would be undefined without the body-parser module.
 
-  const user = await User.findById(body.userId);
-  console.log(user);
+  const token = getTokenFrom(request);
 
-  if (!body.content) {
-    return response.status(400).json({
-      error: 'content missing'
-    });
-  }
-
-  // note being created from the mongoose model 'Note'
-  const note = new Note({
-    content: body.content,
-    important: body.important || false,
-    date: new Date(),
-    user: user._id
-  });
-
-  // saving note to mongodb atlas
   try {
+    const decodedToken = jwt.verify(token, process.env.SECRET);
+    if(!token || !decodedToken.id) {
+      return response.status(401).json({ error: 'token missing or invalid'});
+    }
+    const user = await User.findById(decodedToken.id);
+
+    const note = new Note({
+      content: body.content,
+      important: body.important || false,
+      date: new Date(),
+      user: user._id
+    });
+
     const savedNote = await note.save();
-    /* -- Adding note details in user -- */
-    user.notes = user.notes.concat(savedNote._id); // Adding the saved notes details to the user model, in the notes property.(array of objects)
+    user.notes = user.notes.concat(savedNote._id);
     await user.save();
-    /* -- Adding note details in user -- */
-    response.status(201).json(savedNote.toJSON());
-  } catch(exception) {
+
+    response.json(savedNote.toJSON());
+  } catch (exception) {
     next(exception);
   }
 });
